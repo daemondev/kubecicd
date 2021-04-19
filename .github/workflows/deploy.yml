@@ -70,13 +70,41 @@ jobs:
           context: .
           push: true
           builder: ${{ steps.buildx.outputs.name }}
-    deploy:
-      name: Deploy to k8s
-      needs: [prepare, build]
+  deploy:
+    name: Deploy to k8s
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload Manifests
+        uses: actions/download-artifact@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v1
+      - name: Update KubeConfig
+        run: |
+          aws eks update-kubeconfig --name ddo
+      - name: Apply Manifests
+        run: |
+          kubectl apply -f manifests
+      - name: Variable DEPLOYMENT
+        id: var-deployment
+        run: >-
+          echo ::set-output name=DEPLOYMENT::$(kubectl get deployments -l app=${{ needs.prepare.outputs.APPLICATION }} -o name -n apps)
+      - name: Force Pull Image
+        run: >-
+          kubectl patch ${{ steps.var-deployment.outputs.DEPLOYMENT }} -p
+          "{\"spec\": {\"template\": {\"metadata\": {\"annotations\": {\"commit\": \"${{ needs.prepare.outputs.SHA_SHORT }}\"}}}}}"
+          -n apps
+  verify-deployment:
+    - name: Verify Deployment
+      needs: [build, deploy]
       runs-on: ubuntu-latest
       steps:
-        - name: Upload Manifests
-          uses: actions/download-artifact@v2
         - name: Configure AWS Credentials
           uses: aws-actions/configure-aws-credentials@v1
           with:
@@ -88,34 +116,6 @@ jobs:
         - name: Update KubeConfig
           run: |
             aws eks update-kubeconfig --name ddo
-        - name: Apply Manifests
+        - name: Validate Deployment
           run: |
-            kubectl apply -f manifests
-        - name: Variable DEPLOYMENT
-          id: var-deployment
-          run: >-
-            echo ::set-output name=DEPLOYMENT::$(kubectl get deployments -l app=${{ needs.prepare.outputs.APPLICATION }} -o name -n apps)
-        - name: Force Pull Image
-          run: >-
-            kubectl patch ${{ steps.var-deployment.outputs.DEPLOYMENT }} -p
-            "{\"spec\": {\"template\": {\"metadata\": {\"annotations\": {\"commit\": \"${{ needs.prepare.outputs.SHA_SHORT }}\"}}}}}"
-            -n apps
-      verify-deployment:
-        - name: Verify Deployment
-          needs: [build, deploy]
-          runs-on: ubuntu-latest
-          steps:
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v1
-              with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: ${{ env.region }}
-            - name: Install Kubectl
-              uses: azure/setup-kubectl@v1
-            - name: Update KubeConfig
-              run: |
-                aws eks update-kubeconfig --name ddo
-            - name: Validate Deployment
-              run: |
-                kubectl rollout status deployment ${{ needs.prepare.outputs.APPLICATION }}
+            kubectl rollout status deployment ${{ needs.prepare.outputs.APPLICATION }}
