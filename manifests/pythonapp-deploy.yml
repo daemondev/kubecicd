@@ -8,7 +8,7 @@ metadata:
 spec:
   revisionHistoryLimit: 5
   replicas: 1
-  progressDeadlineSeconds: 240
+  progressDeadlineSeconds: 3600
   selector:
     matchLabels:
       app: pythonapp
