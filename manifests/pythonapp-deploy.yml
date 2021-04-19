@@ -23,10 +23,10 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
-          #resources:
-          #requests:
-          #  memory: 512Mi
-          #  cpu: 200m
+          resources:
+          requests:
+            memory: 212Mi
+            cpu: 200m
       imagePullSecrets:
       - name: github
 ---
