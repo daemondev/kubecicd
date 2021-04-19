@@ -20,7 +20,7 @@ spec:
       containers:
       - name: pythonapp
         #image: ghcr.io/daemondev/pythonapp:latest
-        image: nginx
+        image: nginx:1.7.9
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
