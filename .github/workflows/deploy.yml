@@ -1,0 +1,6 @@
+name: Deploy
+description: Deploy in k8s
+runs:
+  using: docker
+  image: docker://daemondev/kubecicd
+

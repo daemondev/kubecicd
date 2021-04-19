@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pythonapp
+  namespace: ddo
+  labels:
+    app: pythonapp
+spec:
+  revisionHistoryLimit: 5
+  replicas: 1
+  progressDeadLineSeconds: 15
+  selector:
+    matchLabels:
+      app: pythonapp
+  template:
+    metadata:
+      labels:
+        app: pythonapp
+    spec:
+      containers:
+        - name: pythonapp
+          image: ghrc.io/daemondev/pythonapp:latest
+          imagePullPolicy: always
+
+
