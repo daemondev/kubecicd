@@ -72,7 +72,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
   deploy:
     name: Deploy to k8s
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download Manifests
