@@ -35,6 +35,8 @@ jobs:
     outputs:
       IMAGE_TAG: ${{ steps.docker-vars.outputs.IMAGE_TAG }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v1
       - name: Docker Login
         uses: docker/login-action@v1.6.0
         with:
