@@ -96,7 +96,8 @@ jobs:
       - name: Variable DEPLOYMENT
         id: var-deployment
         run: >-
-          echo ::set-output name=DEPLOYMENT::$(kubectl get deployments -l app=${{ needs.prepare.outputs.APPLICATION }} -o name -n apps)
+          echo ::set-output name=DEPLOYMENT::$(kubectl get deployments -l
+          app=${{ needs.prepare.outputs.APPLICATION }} -o name -n apps)
       - name: Force Pull Image
         run: >-
           kubectl patch ${{ steps.var-deployment.outputs.DEPLOYMENT }} -p
