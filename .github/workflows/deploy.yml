@@ -72,11 +72,13 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
   deploy:
     name: Deploy to k8s
-    needs: [prepare, build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Upload Manifests
+      - name: Download Manifests
         uses: actions/download-artifact@v2
+        with:
+          name: pyartifact
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
